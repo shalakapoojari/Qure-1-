@@ -53,6 +53,9 @@
                             </div>
                         {% else %}
                             <div class="queue-info">
+                              <div id="mic-status" class="mic-indicator">
+                                🎙️ Voice control active – say “next” to admit user
+                            </div>
                                 <div class="queue-details">
                                     <h3>Queue ID: <span class="highlight">{{ queue_id }}</span></h3>
                                     <p class="status">Status: <span class="badge {% if queue_status == 'active' %}badge-success{% else %}badge-danger{% endif %}">{{ queue_status|capitalize }}</span></p>
@@ -135,7 +138,9 @@
         </footer>
     </div>
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='voicecontrols.js') }}"></script>
+
 </body>
 </html>
 
