@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - Qure</title>
+    <link rel="stylesheet" href="{{ url_for('static/styles.css')}}">
+</head>
+<body>
+    <h1>Qure Admin Dashboard</h1>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('generate_queue') }}">
+        <button type="submit">Generate New Queue</button>
+    </form>
+
+    {% if qr_path %}
+        <h3>Queue ID: {{ queue_id }}</h3>
+        <img src="{{ url_for('static', filename='qrcodes/' + queue_id + '.png') }}" alt="Queue QR Code" width="200">
+        <br><br>
+        <a href="{{ url_for('admit_next', queue_id=queue_id) }}"><button>Admit Next User</button></a>
+        <a href="{{ url_for('close_queue', queue_id=queue_id) }}"><button>Close Queue</button></a>
+    {% endif %}
+</body>
+</html>
