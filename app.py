@@ -31,12 +31,21 @@ def send_email(to_email, subject, body):
         print("Email failed:", e)
 
 # Generate QR Code
+import os
+
 def generate_qr(queue_id):
     url = f"https://qure-1.onrender.com/join/{queue_id}"
     img = qrcode.make(url)
-    path = f"static/qrcodes/{queue_id}.png"
-    img.save(path)
-    return path
+
+    qr_folder = os.path.join('static', 'qrcodes')
+    os.makedirs(qr_folder, exist_ok=True)  # Create the folder if it doesn't exist
+
+    filename = f"{queue_id}.png"
+    filepath = os.path.join(qr_folder, filename)
+    img.save(filepath)
+
+    return url_for('static', filename=f'qrcodes/{filename}')
+
 
 # Home Page
 @app.route('/')
@@ -55,7 +64,8 @@ def generate_queue():
         "total_service_time": 0
     }
     mongo.db.queues.insert_one(queue)
-    qr_path = generate_qr(queue_id)
+
+    qr_path = generate_qr(queue_id)  # returns proper URL path now
     flash(f"Queue generated successfully. Queue ID: {queue_id}")
     return render_template('admin_dashboard.html', qr_path=qr_path, queue_id=queue_id)
 
