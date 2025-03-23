@@ -138,10 +138,15 @@
         </footer>
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
-    <script src="{{ url_for('static', filename='voicecontrols.js') }}">    window.queueIdFromServer = "{{ queue_id | default('') }}";
-    </script>
-
 </body>
+
+    <script>
+        window.queueIdFromServer = "{{ queue_id | default('') | safe }}";
+    </script>
+    
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='voicecontrols.js') }}"></script>
+
 </html>
 
