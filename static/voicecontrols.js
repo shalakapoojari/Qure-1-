@@ -1,10 +1,9 @@
-// voice_control.js
-
 let recognition;
+let isProcessing = false; // Prevent repeated processing for same word
 
 function initVoiceRecognition() {
     if (!('webkitSpeechRecognition' in window)) {
-        speak("Voice recognition is not supported in your browser.");
+        speak("Voice recognition not supported.");
         updateMicStatus("❌ Voice recognition not supported.");
         return;
     }
@@ -15,28 +14,31 @@ function initVoiceRecognition() {
     recognition.lang = 'en-US';
 
     recognition.onstart = () => {
-        console.log("🎤 Voice recognition started.");
         updateMicStatus("🎙️ Listening for 'next' command...");
-        speak("Voice recognition activated. Say 'next' to admit a user.");
+        speak("Hello shalaka & sanjana!. Say 'next' to admit a user.");
     };
 
     recognition.onresult = (event) => {
         const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
         console.log("👂 Heard:", transcript);
-        if (transcript.includes("next")) {
+
+        if (transcript.includes("next") && !isProcessing) {
+            isProcessing = true;
             admitNextUser();
+            // Wait for 3s before accepting next command
+            setTimeout(() => isProcessing = false, 3000);
         }
     };
 
     recognition.onerror = (event) => {
-        console.error("❌ Voice recognition error:", event.error);
-        updateMicStatus("⚠️ Voice error, restarting...");
-        speak("There was an error with voice recognition. Restarting.");
+        console.error("⚠️ Voice recognition error:", event.error);
+        updateMicStatus("⚠️ Voice error. Restarting recognition...");
+        speak("There was an error. Restarting voice control.");
         restartRecognition();
     };
 
     recognition.onend = () => {
-        console.log("🔁 Voice recognition stopped, restarting...");
+        console.log("🔁 Voice recognition ended, restarting...");
         updateMicStatus("🔄 Restarting voice recognition...");
         restartRecognition();
     };
@@ -45,28 +47,27 @@ function initVoiceRecognition() {
 }
 
 function restartRecognition() {
-    setTimeout(() => {
-        if (recognition) recognition.start();
-    }, 1000);
+    if (recognition) {
+        recognition.stop(); // Prevent double listeners
+        setTimeout(() => recognition.start(), 1000);
+    }
 }
 
 function admitNextUser() {
     fetch(`/admit_next/${queueId}`)
         .then(response => {
             if (response.ok) {
-                console.log("✅ User admitted via voice command.");
-                updateMicStatus("✅ User admitted! Listening again...");
+                updateMicStatus("✅ User admitted via voice");
                 speak("User admitted successfully.");
             } else {
-                console.warn("❌ Failed to admit user.");
-                updateMicStatus("⚠️ Failed to admit user.");
-                speak("Failed to admit the user. Please try again.");
+                updateMicStatus("❌ Failed to admit user");
+                speak("Failed to admit user.");
             }
         })
         .catch(err => {
-            console.error("❌ Fetch error:", err);
-            updateMicStatus("⚠️ Network error.");
-            speak("There was a network error. Please check your connection.");
+            console.error("Fetch error:", err);
+            updateMicStatus("⚠️ Network error");
+            speak("Network error occurred.");
         });
 }
 
@@ -74,12 +75,11 @@ function speak(text) {
     if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'en-US';
-        utterance.volume = 1;    // 0 to 1
-        utterance.rate = 1;      // 0.1 to 10
-        utterance.pitch = 1;     // 0 to 2
+        utterance.volume = 1;
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        window.speechSynthesis.cancel(); // Cancel previous utterance if any
         window.speechSynthesis.speak(utterance);
-    } else {
-        console.warn("🗣️ Speech synthesis not supported.");
     }
 }
 
