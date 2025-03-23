@@ -82,6 +82,40 @@ def show_join_form(queue_id):
 # Generate Queue
 @app.route('/generate_queue')
 def generate_queue():
+    # Check if there's an active queue already
+    existing_queue = mongo.db.queues.find_one({"status": "active"})
+    
+    if existing_queue:
+        queue_id = existing_queue["queue_id"]
+        qr_path = f"/static/qrcodes/{queue_id}.png"
+        
+        # If QR code doesn't exist for some reason, regenerate it
+        if not os.path.exists(f"static/qrcodes/{queue_id}.png"):
+            qr_path = generate_qr(queue_id)
+            
+        # Get waiting users
+        waiting_users = list(mongo.db.queue_users.find(
+            {"queue_id": queue_id, "status": "waiting"}
+        ).sort("join_time", 1))
+        
+        # Calculate estimated wait times
+        served_count = existing_queue.get("served_count", 0)
+        total_service_time = existing_queue.get("total_service_time", 0)
+        avg_service_time = (total_service_time / served_count) if served_count > 0 else 120
+        
+        for i, user in enumerate(waiting_users):
+            user['est_wait'] = avg_service_time * i
+        
+        flash(f"Using existing active queue. Queue ID: {queue_id}")
+        return render_template(
+            'admin_dashboard.html',
+            qr_path=qr_path,
+            queue_id=queue_id,
+            queue_status=existing_queue['status'],
+            users=waiting_users
+        )
+    
+    # If no active queue, create a new one
     queue_id = str(uuid.uuid4())[:8]
     queue = {
         "queue_id": queue_id,

@@ -1,11 +1,11 @@
 /* Base Styles */
 :root {
-    --primary-color: #6c5ce7;
-    --primary-glow: rgba(108, 92, 231, 0.5);
+    --primary-color: #4169e1;
+    --primary-glow: rgba(65, 105, 225, 0.5);
     --secondary-color: #00cec9;
     --secondary-glow: rgba(0, 206, 201, 0.5);
-    --accent-color: #fd79a8;
-    --accent-glow: rgba(253, 121, 168, 0.5);
+    --accent-color: #00b0ff;
+    --accent-glow: rgba(0, 176, 255, 0.5);
     --success-color: #00b894;
     --danger-color: #d63031;
     --warning-color: #fdcb6e;
@@ -29,6 +29,14 @@
     --transition-fast: 0.2s ease;
     --transition-normal: 0.3s ease;
     --transition-slow: 0.5s ease;
+  
+    /* Mobile specific */
+    --mobile-bg: #121212;
+    --mobile-card-bg: #1e1e24;
+    --mobile-accent: #4169e1;
+    --mobile-text: #ffffff;
+    --mobile-text-secondary: #a0a0a0;
+    --mobile-border: #2a2a30;
   }
   
   * {
@@ -108,7 +116,8 @@
   /* Header */
   header {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
     margin-bottom: 1.5rem;
     text-align: center;
   }
@@ -452,13 +461,6 @@
     height: 100%;
   }
   
-  .kirby-gif,
-  .waiting-gif {
-    max-width: 120px;
-    margin-bottom: 1rem;
-    border-radius: var(--border-radius-md);
-  }
-  
   /* Join Form */
   .join-form {
     max-width: 400px;
@@ -473,6 +475,13 @@
   
   .join-card,
   .status-card,
+  .error-card {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  
+  /* Status Card */
+  .status- .status-card,
   .error-card {
     max-width: 500px;
     margin: 0 auto;
@@ -565,6 +574,206 @@
     margin-bottom: 1rem;
   }
   
+  /* Mobile View Styles */
+  .mobile-view {
+    background-color: var(--mobile-bg);
+    color: var(--mobile-text);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .mobile-header {
+    background-color: var(--mobile-bg);
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--mobile-border);
+  }
+  
+  .mobile-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+  }
+  
+  .mobile-back {
+    color: var(--mobile-accent);
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+  
+  .mobile-url {
+    font-size: 0.9rem;
+    color: var(--mobile-text);
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+  }
+  
+  .mobile-actions {
+    display: flex;
+    gap: 1rem;
+    color: var(--mobile-accent);
+  }
+  
+  .mobile-container {
+    flex: 1;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  
+  .mobile-footer {
+    background-color: var(--mobile-bg);
+    padding: 0.5rem;
+    border-top: 1px solid var(--mobile-border);
+  }
+  
+  .mobile-nav-buttons {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 0.5rem;
+  }
+  
+  .mobile-nav-buttons button {
+    background: none;
+    border: none;
+    color: var(--mobile-accent);
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+  
+  .mobile-home-indicator {
+    height: 5px;
+    width: 30%;
+    background-color: #888;
+    border-radius: 3px;
+    margin: 0.5rem auto;
+  }
+  
+  /* Queue Status Mobile */
+  .queue-status-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1rem;
+  }
+  
+  .status-icon {
+    font-size: 2.5rem;
+    color: var(--mobile-accent);
+    margin-bottom: 1rem;
+  }
+  
+  .status-title {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    color: var(--mobile-text);
+  }
+  
+  .status-message {
+    color: var(--mobile-text-secondary);
+    margin-bottom: 2rem;
+  }
+  
+  .status-card {
+    background-color: var(--mobile-card-bg);
+    border-radius: 12px;
+    width: 100%;
+    padding: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .status-section {
+    display: flex;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--mobile-border);
+  }
+  
+  .status-section:last-child {
+    border-bottom: none;
+  }
+  
+  .status-icon-small {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(65, 105, 225, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    color: var(--mobile-accent);
+  }
+  
+  .status-content {
+    flex: 1;
+  }
+  
+  .status-content h3 {
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+    color: var(--mobile-text-secondary);
+  }
+  
+  .status-content p {
+    font-size: 1rem;
+    color: var(--mobile-text);
+    margin: 0;
+  }
+  
+  .progress-container {
+    width: 100%;
+    margin-top: 1rem;
+  }
+  
+  .progress-bar {
+    height: 6px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background-color: var(--mobile-accent);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+  
+  /* Join Form Mobile */
+  .join-form-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1rem;
+  }
+  
+  .join-icon {
+    font-size: 2.5rem;
+    color: var(--mobile-accent);
+    margin-bottom: 1rem;
+  }
+  
+  .join-title {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: var(--mobile-text);
+  }
+  
+  .join-card {
+    background-color: var(--mobile-card-bg);
+    border-radius: 12px;
+    width: 100%;
+    padding: 1.5rem;
+  }
+  
   /* Animations */
   @keyframes pulse {
     0% {
@@ -602,6 +811,7 @@
       grid-template-columns: 1fr;
       height: auto;
       max-height: none;
+      gap: 1rem;
     }
   
     .card-header,
@@ -622,6 +832,10 @@
       flex-direction: row;
       text-align: left;
       padding: 0.5rem;
+    }
+  
+    .card {
+      margin-bottom: 1rem;
     }
   }
   
