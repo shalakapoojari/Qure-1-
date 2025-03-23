@@ -1,56 +1,53 @@
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Join Queue - Qure</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    </head>
-    <body>
-        <div class="container">
-            <header>
-                <div class="logo">
-                    <span class="glow">Q</span>ure
-                </div>
-                <h1>Join Queue</h1>
-            </header>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Queue - Qure</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="background-glow"></div>
     
-            <main>
-                <div class="card join-card">
-                    <div class="card-header">
-                        <h2>Enter Your Details</h2>
-                    </div>
-                    <div class="card-body">
-                        <div class="join-animation">
-                            <img src="{{ url_for('static', filename='images/waiting.gif') }}" alt="Waiting" class="waiting-gif">
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span class="glow">Q</span>ure
+            </div>
+            <h1>Join Queue</h1>
+        </header>
+
+        <main>
+            <div class="card join-card">
+                <div class="card-header">
+                    <h2>Enter Your Details</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" class="join-form">
+                        <div class="form-group">
+                            <label for="email">
+                                <i class="fas fa-envelope"></i> Email Address
+                            </label>
+                            <input type="email" name="email" id="email" required 
+                                   placeholder="Enter your email to join the queue">
                         </div>
                         
-                        <form method="POST" class="join-form">
-                            <div class="form-group">
-                                <label for="email">
-                                    <i class="fas fa-envelope"></i> Email Address
-                                </label>
-                                <input type="email" name="email" id="email" required 
-                                       placeholder="Enter your email to join the queue">
-                            </div>
-                            
-                            <button type="submit" class="btn btn-primary btn-block">
-                                <i class="fas fa-sign-in-alt"></i> Join Queue
-                            </button>
-                        </form>
-                    </div>
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="fas fa-sign-in-alt"></i> Join Queue
+                        </button>
+                    </form>
                 </div>
-            </main>
-    
-            <footer>
-                <p>&copy; 2025 Qure - Queue Management System</p>
-            </footer>
-        </div>
-    
-        <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-    </body>
-    </html>
-    
-    
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 Qure - Queue Management System</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
+

@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <div class="background-glow"></div>
+    
     <div class="container">
         <header>
             <div class="logo">
@@ -23,10 +25,6 @@
                     <h2>You're in the Queue!</h2>
                 </div>
                 <div class="card-body">
-                    <div class="status-animation">
-                        <img src="{{ url_for('static', filename='images/kirby.gif') }}" alt="Kirby" class="kirby-gif">
-                    </div>
-                    
                     <div class="status-info">
                         <div class="info-item">
                             <i class="fas fa-user"></i>
