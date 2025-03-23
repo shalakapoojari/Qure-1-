@@ -2,102 +2,139 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Qure</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
-        body {
-            font-family: sans-serif;
-            margin: 2rem;
-        }
-        .btn-group button {
-            margin-right: 10px;
-        }
-        table {
-            border-collapse: collapse;
-            margin-top: 20px;
-            width: 100%;
-        }
-        th, td {
-            padding: 10px;
-            border: 1px solid #ccc;
-        }
-        th {
-            background-color: #f0f0f0;
-        }
-        .flash-messages {
-            background: #e6ffe6;
-            border: 1px solid #00aa00;
-            padding: 10px;
-            margin-bottom: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <h1>Qure Admin Dashboard</h1>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span class="glow">Q</span>ure
+            </div>
+            <h1>Admin Dashboard</h1>
+        </header>
 
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <div class="flash-messages">
-          <ul>
-            {% for message in messages %}
-              <li>{{ message }}</li>
-            {% endfor %}
-          </ul>
-        </div>
-      {% endif %}
-    {% endwith %}
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for message in messages %}
+                <div class="message">
+                    <i class="fas fa-info-circle"></i>
+                    {{ message }}
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
 
-    <!-- Generate Queue Button -->
-    <form action="{{ url_for('generate_queue') }}" method="get">
-        <button type="submit">Generate New Queue</button>
-    </form>
+        <main>
+            <div class="card">
+                <div class="card-header">
+                    <h2>Queue Management</h2>
+                </div>
+                <div class="card-body">
+                    {% if not qr_path %}
+                        <!-- Generate Queue Button -->
+                        <div class="action-container">
+                            <form action="{{ url_for('generate_queue') }}" method="get">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus-circle"></i> Generate New Queue
+                                </button>
+                            </form>
+                        </div>
+                        <div class="empty-state">
+                            <img src="{{ url_for('static', filename='images/kirby.gif') }}" alt="Kirby" class="kirby-gif">
+                            <p>No active queue. Generate a new one to get started!</p>
+                        </div>
+                    {% else %}
+                        <div class="queue-info">
+                            <div class="queue-details">
+                                <h3>Queue ID: <span class="highlight">{{ queue_id }}</span></h3>
+                                <p class="status">Status: <span class="badge {% if queue_status == 'active' %}badge-success{% else %}badge-danger{% endif %}">{{ queue_status|capitalize }}</span></p>
+                                
+                                <div class="btn-group">
+                                    <form method="get" action="{{ url_for('admit_next', queue_id=queue_id) }}">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-user-check"></i> Admit Next User
+                                        </button>
+                                    </form>
+                                    <form method="get" action="{{ url_for('close_queue', queue_id=queue_id) }}">
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-times-circle"></i> Close Queue
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            <div class="qr-container">
+                                <div class="qr-code">
+                                    <img src="{{ qr_path }}" alt="Queue QR Code">
+                                </div>
+                                <p class="qr-instruction">Scan to join the queue</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
 
-    <!-- Display Active Queue Information -->
-    {% if qr_path %}
-        <hr>
-        <h3>Queue ID: {{ queue_id }}</h3>
-        <img src="{{ url_for('static', filename='qrcodes/' + queue_id + '.png') }}" alt="Queue QR Code" width="200">
+            <!-- Waiting Users Table -->
+            {% if users %}
+                <div class="card users-card">
+                    <div class="card-header">
+                        <h2>Users in Queue</h2>
+                        <span class="user-count">{{ users|length }}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Position</th>
+                                        <th>Email</th>
+                                        <th>Wait Time</th>
+                                        <th>Joined At</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ user.user_email }}</td>
+                                        <td>{{ (user.est_wait / 60) | round(1) }} min</td>
+                                        <td>{{ user.join_time.strftime('%H:%M:%S') }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% elif qr_path %}
+                <div class="card users-card">
+                    <div class="card-header">
+                        <h2>Users in Queue</h2>
+                        <span class="user-count">0</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="empty-state">
+                            <img src="{{ url_for('static', filename='images/waiting.gif') }}" alt="Waiting" class="waiting-gif">
+                            <p>No users in queue yet. Share the QR code to get started!</p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </main>
 
-        <div class="btn-group" style="margin-top: 20px;">
-            <form method="get" action="{{ url_for('admit_next', queue_id=queue_id) }}" style="display:inline;">
-                <button type="submit">Admit Next User</button>
-            </form>
-            <form method="get" action="{{ url_for('close_queue', queue_id=queue_id) }}" style="display:inline;">
-                <button type="submit">Close Queue</button>
-            </form>
-        </div>
+        <footer>
+            <p>&copy; 2025 Qure - Queue Management System</p>
+        </footer>
+    </div>
 
-        <!-- Optional: Show Queue Status -->
-        {% if queue_status %}
-            <p><strong>Status:</strong> {{ queue_status|capitalize }}</p>
-        {% endif %}
-    {% endif %}
-
-    <!-- Waiting Users Table -->
-    {% if users %}
-        <h3>Users Waiting in Queue</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Email</th>
-                    <th>Estimated Wait Time (minutes)</th>
-                    <th>Joined At</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for user in users %}
-                <tr>
-                    <td>{{ user.user_email }}</td>
-                    <td>{{ (user.est_wait / 60) | round(2) }}</td>
-                    <td>{{ user.join_time.strftime('%Y-%m-%d %H:%M:%S') if user.join_time else 'N/A' }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No users in queue currently.</p>
-    {% endif %}
-
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
+

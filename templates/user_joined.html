@@ -2,33 +2,102 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Queue Joined - Qure</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-
-    <script>
-        // Poll every 5 seconds to check user's status
-        setInterval(async () => {
-            try {
-                const response = await fetch("/check_status/{{ queue_id }}/{{ user_email }}");
-                const data = await response.json();
-                if (data.status === "served") {
-                    document.getElementById("status-message").innerText = "✅ You have been accepted. Please proceed now.";
-                    document.getElementById("queue-details").style.display = "none";
-                }
-            } catch (err) {
-                console.error("Error checking status:", err);
-            }
-        }, 5000);
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Queue Status - Qure</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <h1>You have successfully joined the queue!</h1>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span class="glow">Q</span>ure
+            </div>
+            <h1>Queue Status</h1>
+        </header>
 
-    <div id="queue-details">
-        <p>Your position in the queue: <strong>{{ position }}</strong></p>
-        <p>Estimated waiting time: <strong>{{ est_time }} minutes</strong></p>
+        <main>
+            <div class="card status-card">
+                <div class="card-header">
+                    <h2>You're in the Queue!</h2>
+                </div>
+                <div class="card-body">
+                    <div class="status-animation">
+                        <img src="{{ url_for('static', filename='images/kirby.gif') }}" alt="Kirby" class="kirby-gif">
+                    </div>
+                    
+                    <div class="status-info">
+                        <div class="info-item">
+                            <i class="fas fa-user"></i>
+                            <div>
+                                <h3>Your Email</h3>
+                                <p>{{ user_email }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <i class="fas fa-hashtag"></i>
+                            <div>
+                                <h3>Your Position</h3>
+                                <p class="highlight">{{ position }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <h3>Estimated Wait Time</h3>
+                                <p>{{ est_time }} minutes</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="status-message">
+                        <p>We'll notify you by email when it's your turn!</p>
+                        <div class="status-indicator">
+                            <div class="pulse"></div>
+                            <span>Waiting</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 Qure - Queue Management System</p>
+        </footer>
     </div>
 
-    <p id="status-message">⏳ Waiting for your turn...</p>
+    <script>
+        // Auto-refresh status
+        const queueId = "{{ queue_id }}";
+        const userEmail = "{{ user_email }}";
+        
+        function checkStatus() {
+            fetch(`/check_status/${queueId}/${userEmail}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "served") {
+                        document.querySelector('.status-indicator span').textContent = "It's your turn!";
+                        document.querySelector('.status-indicator').classList.add('active');
+                        document.querySelector('.status-message p').textContent = "You've been called! Please proceed now.";
+                        
+                        // Stop checking once served
+                        clearInterval(statusInterval);
+                    }
+                })
+                .catch(error => console.error('Error checking status:', error));
+        }
+        
+        // Check status every 10 seconds
+        const statusInterval = setInterval(checkStatus, 10000);
+        
+        // Initial check
+        checkStatus();
+    </script>
+    
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
+
