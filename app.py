@@ -6,6 +6,7 @@ import uuid, qrcode, os, smtplib
 from datetime import datetime
 from email.mime.text import MIMEText
 from dotenv import load_dotenv
+from flask import jsonify
 
 load_dotenv()
 
@@ -78,46 +79,50 @@ def generate_queue():
 
 
 # Join Queue via QR
-@app.route('/join/<queue_id>', methods=['GET', 'POST'])
+@app.route('/join/<queue_id>')
 def join_queue(queue_id):
     queue = mongo.db.queues.find_one({"queue_id": queue_id})
-    if not queue or queue['status'] != 'active':
-        return render_template('queue_closed.html', queue_id=queue_id)
+    if not queue or queue['status'] == 'closed':
+        flash("Queue does not exist or has been closed.")
+        return redirect(url_for('home'))
 
-    if request.method == 'POST':
-        email = request.form['email'].strip().lower()
-        
-        user_data = {
+    email = request.args.get('email')  # Or however you're capturing user email
+    if not email:
+        flash("Email is required to join the queue.")
+        return redirect(url_for('home'))
+
+    existing_user = mongo.db.queue_users.find_one({
+        "queue_id": queue_id,
+        "user_email": email,
+        "status": "waiting"
+    })
+
+    if existing_user:
+        position = list(mongo.db.queue_users.find({"queue_id": queue_id, "status": "waiting"})).index(existing_user)
+    else:
+        join_time = datetime.utcnow()
+        mongo.db.queue_users.insert_one({
             "queue_id": queue_id,
             "user_email": email,
-            "join_time": datetime.utcnow(),
-            "status": "waiting"
-        }
+            "status": "waiting",
+            "join_time": join_time
+        })
+        waiting_users = list(mongo.db.queue_users.find({"queue_id": queue_id, "status": "waiting"}).sort("join_time", 1))
+        position = len(waiting_users) - 1  # Since newly added will be at end
 
-        position = mongo.db.queue_users.count_documents({"queue_id": queue_id, "status": "waiting"})
-        
-        avg_time = (queue['total_service_time'] / queue['served_count']) if queue['served_count'] > 0 else 120
-        est_wait_time = avg_time * position
+    served_count = queue.get("served_count", 0)
+    total_service_time = queue.get("total_service_time", 0)
 
-        user_data['est_wait'] = est_wait_time
-        mongo.db.queue_users.insert_one(user_data)
-
-        return render_template(
-            'user_joined.html',
-            position=position + 1,
-            est_time=round(est_wait_time / 60, 2),
-            queue_id=queue_id,
-            email=email
-        )
+    avg_service_time = (total_service_time / served_count) if served_count > 0 else 120  # default 2 mins
+    est_wait_time = avg_service_time * position
 
     return render_template(
-    'user_joined.html',
-    position=position + 1,
-    est_time=round(est_wait_time / 60, 2),
-    queue_id=queue_id,
-    user_email=email
-)
-
+        'user_joined.html',
+        position=position + 1,
+        est_time=round(est_wait_time / 60, 2),
+        queue_id=queue_id,
+        user_email=email
+    )
 
 
 # Admit Next User
@@ -169,6 +174,19 @@ def close_queue(queue_id):
     mongo.db.queues.update_one({"queue_id": queue_id}, {"$set": {"status": "inactive"}})
     flash("Queue closed successfully")
     return redirect(url_for('home'))
+
+@app.route('/check_status/<queue_id>/<email>')
+def check_status(queue_id, email):
+    user = mongo.db.queue_users.find_one({
+        "queue_id": queue_id,
+        "user_email": email
+    })
+
+    if user:
+        return jsonify({"status": user.get("status", "waiting")})
+    else:
+        return jsonify({"status": "not_found"})
+
 
 if __name__ == '__main__':
     app.run(debug=True)
