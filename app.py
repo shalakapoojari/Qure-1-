@@ -34,17 +34,12 @@ def send_email(to_email, subject, body):
 import os
 
 def generate_qr(queue_id):
-    url = f"https://qure-1.onrender.com/join/{queue_id}"
+    url = f"https://qure-1-1.onrender.com/join/{queue_id}"  # Correct user-facing URL
     img = qrcode.make(url)
+    path = f"static/qrcodes/{queue_id}.png"
+    img.save(path)
+    return path  # local path to be used in admin_dashboard
 
-    qr_folder = os.path.join('static', 'qrcodes')
-    os.makedirs(qr_folder, exist_ok=True)  # Create the folder if it doesn't exist
-
-    filename = f"{queue_id}.png"
-    filepath = os.path.join(qr_folder, filename)
-    img.save(filepath)
-
-    return url_for('static', filename=f'qrcodes/{filename}')
 
 
 # Home Page
@@ -65,9 +60,16 @@ def generate_queue():
     }
     mongo.db.queues.insert_one(queue)
 
-    qr_path = generate_qr(queue_id)  # returns proper URL path now
+    qr_path = generate_qr(queue_id)  # static/qrcodes/xxxx.png
+    full_qr_url = f"https://qure-1-1.onrender.com/static/qrcodes/{queue_id}.png"
+    
     flash(f"Queue generated successfully. Queue ID: {queue_id}")
-    return render_template('admin_dashboard.html', qr_path=qr_path, queue_id=queue_id)
+    return render_template(
+        'admin_dashboard.html',
+        qr_path=full_qr_url,
+        queue_id=queue_id
+    )
+
 
 # Join Queue via QR
 @app.route('/join/<queue_id>', methods=['GET', 'POST'])
