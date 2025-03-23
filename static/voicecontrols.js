@@ -1,13 +1,10 @@
 let recognition;
-let isProcessing = false;
-
-// ✅ Set the queue ID from the HTML page
 let queueId = window.queueIdFromServer || null;
+let isProcessing = false;
 
 // Initialize Voice Recognition
 function initVoiceRecognition() {
     if (!('webkitSpeechRecognition' in window)) {
-        speak("Voice recognition is not supported in this browser.");
         updateMicStatus("❌ Voice recognition not supported.");
         return;
     }
@@ -18,93 +15,82 @@ function initVoiceRecognition() {
     recognition.lang = 'en-US';
 
     recognition.onstart = () => {
-        updateMicStatus("🎙️ Listening... Say 'next' to admit user.");
-        speak("Hello sangeeta ma'am!. Say next to admit the next user.");
+        speak("Hello sangeeta maam.");
+        updateMicStatus("🎙️ Listening for the word 'next'...");
     };
 
     recognition.onresult = (event) => {
-        const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-        console.log("Voice heard:", transcript);
+        const result = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+        console.log("Recognized:", result);
 
-        if (transcript.includes("next") && !isProcessing) {
+        if (result.includes("next") && !isProcessing) {
             isProcessing = true;
             admitNextUser();
-
             setTimeout(() => {
                 isProcessing = false;
-            }, 3000); // Debounce for 3 seconds
+            }, 3000); // prevent multiple triggers
         }
     };
 
     recognition.onerror = (event) => {
-        console.error("Voice error:", event.error);
-        updateMicStatus("⚠️ Error occurred. Restarting...");
-        speak("An error occurred. Restarting voice recognition.");
-        restartRecognition();
+        console.error("Recognition error:", event.error);
+        updateMicStatus("⚠️ Voice recognition error.");
     };
 
     recognition.onend = () => {
+        // Don't speak on end, just restart silently
         console.log("Recognition ended. Restarting...");
-        updateMicStatus("🔄 Restarting voice recognition...");
-        restartRecognition();
+        recognition.start(); // silent restart
     };
 
     recognition.start();
 }
 
-// Restart recognizer in case of end or error
-function restartRecognition() {
-    if (recognition) {
-        recognition.stop();
-        setTimeout(() => recognition.start(), 1000);
-    }
-}
-
-// Call admit next user route
+// Admit user via fetch
 function admitNextUser() {
     if (!queueId) {
-        console.error("Queue ID not found");
-        updateMicStatus("❌ Queue ID missing. Cannot admit user.");
+        console.warn("Queue ID missing.");
+        updateMicStatus("❌ Queue ID not available.");
         speak("Queue ID not available.");
         return;
     }
 
     fetch(`/admit_next/${queueId}`)
-        .then((response) => {
+        .then(response => {
             if (response.ok) {
                 updateMicStatus("✅ User admitted via voice.");
-                speak("User admitted successfully.");
+                speak("User admitted.");
             } else {
                 updateMicStatus("❌ Failed to admit user.");
                 speak("Failed to admit user.");
             }
         })
-        .catch((err) => {
+        .catch(err => {
             console.error("Fetch error:", err);
             updateMicStatus("❌ Network error.");
-            speak("There was a network error.");
+            speak("Network error.");
         });
 }
 
-// Voice feedback system
+// Speak text once
 function speak(text) {
-    if ('speechSynthesis' in window) {
+    if ('speechSynthesis' in window && text) {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'en-US';
-        utterance.rate = 1;
-        utterance.pitch = 1;
-        speechSynthesis.cancel(); // Stop any prior speech
+        speechSynthesis.cancel(); // prevent overlapping speech
         speechSynthesis.speak(utterance);
     }
 }
 
-// Update mic status on screen
+// Show mic status on page
 function updateMicStatus(msg) {
-    const micEl = document.getElementById("mic-status");
-    if (micEl) micEl.textContent = msg;
+    const status = document.getElementById("mic-status");
+    if (status) {
+        status.textContent = msg;
+    }
 }
 
-// Start voice recognition once page is fully loaded
+// Start everything on page load
 window.addEventListener("DOMContentLoaded", () => {
     initVoiceRecognition();
 });
