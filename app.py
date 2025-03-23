@@ -110,7 +110,14 @@ def join_queue(queue_id):
             email=email
         )
 
-    return render_template('join_queue.html', queue_id=queue_id)
+    return render_template(
+    'user_joined.html',
+    position=position + 1,
+    est_time=round(est_wait_time / 60, 2),
+    queue_id=queue_id,
+    user_email=email
+)
+
 
 
 # Admit Next User

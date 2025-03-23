@@ -5,10 +5,30 @@
     <title>Queue Joined - Qure</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 
+    <script>
+        // Poll every 5 seconds to check user's status
+        setInterval(async () => {
+            try {
+                const response = await fetch("/check_status/{{ queue_id }}/{{ user_email }}");
+                const data = await response.json();
+                if (data.status === "served") {
+                    document.getElementById("status-message").innerText = "✅ You have been accepted. Please proceed now.";
+                    document.getElementById("queue-details").style.display = "none";
+                }
+            } catch (err) {
+                console.error("Error checking status:", err);
+            }
+        }, 5000);
+    </script>
 </head>
 <body>
     <h1>You have successfully joined the queue!</h1>
-    <p>Your position in the queue: <strong>{{ position }}</strong></p>
-    <p>Estimated waiting time: <strong>{{ est_time }} minutes</strong></p>
+
+    <div id="queue-details">
+        <p>Your position in the queue: <strong>{{ position }}</strong></p>
+        <p>Estimated waiting time: <strong>{{ est_time }} minutes</strong></p>
+    </div>
+
+    <p id="status-message">⏳ Waiting for your turn...</p>
 </body>
 </html>
