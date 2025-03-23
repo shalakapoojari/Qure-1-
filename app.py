@@ -116,20 +116,45 @@ def join_queue(queue_id):
 # Admit Next User
 @app.route('/admit_next/<queue_id>')
 def admit_next(queue_id):
-    user = mongo.db.queue_users.find_one({"queue_id": queue_id, "status": "waiting"})
-    if not user:
-        flash("No more users in the queue")
+    queue = mongo.db.queues.find_one({"queue_id": queue_id})
+    if not queue:
+        flash("Queue not found.")
         return redirect(url_for('home'))
-    end_time = datetime.utcnow()
-    service_time = (end_time - user['join_time']).total_seconds()
-    mongo.db.queue_users.update_one({"_id": user['_id']}, {"$set": {"status": "served", "served_time": end_time}})
-    mongo.db.queues.update_one(
-        {"queue_id": queue_id},
-        {"$inc": {"served_count": 1, "total_service_time": service_time}}
-    )
-    send_email(user['user_email'], "Your Turn Has Arrived", f"Please proceed now. Your queue number has been called.")
-    flash(f"User {user['user_email']} admitted and notified")
-    return redirect(url_for('home'))
+
+    user = mongo.db.queue_users.find_one({"queue_id": queue_id, "status": "waiting"}, sort=[("join_time", 1)])
+    if not user:
+        flash("No more users in the queue.")
+    else:
+        end_time = datetime.utcnow()
+        service_time = (end_time - user['join_time']).total_seconds()
+
+        # Update user status to 'served'
+        mongo.db.queue_users.update_one(
+            {"_id": user['_id']},
+            {"$set": {"status": "served", "served_time": end_time}}
+        )
+
+        # Update queue stats
+        mongo.db.queues.update_one(
+            {"queue_id": queue_id},
+            {"$inc": {
+                "served_count": 1,
+                "total_service_time": service_time
+            }}
+        )
+
+        # Notify the user
+        send_email(user['user_email'], "Your Turn Has Arrived", "Please proceed now. Your queue number has been called.")
+        flash(f"User {user['user_email']} admitted and notified.")
+
+    # Fetch updated queue and users again
+    queue = mongo.db.queues.find_one({"queue_id": queue_id})
+    waiting_users = list(mongo.db.queue_users.find({"queue_id": queue_id, "status": "waiting"}))
+    qr_path = f"static/qrcodes/{queue_id}.png"
+
+    # Render updated admin dashboard
+    return render_template('admin_dashboard.html', queue_id=queue_id, qr_path=qr_path, queue_status=queue['status'], users=waiting_users)
+
 
 # Close Queue
 @app.route('/close_queue/<queue_id>')

@@ -4,30 +4,100 @@
     <meta charset="UTF-8">
     <title>Admin Dashboard - Qure</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-  </head>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 2rem;
+        }
+        .btn-group button {
+            margin-right: 10px;
+        }
+        table {
+            border-collapse: collapse;
+            margin-top: 20px;
+            width: 100%;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        th {
+            background-color: #f0f0f0;
+        }
+        .flash-messages {
+            background: #e6ffe6;
+            border: 1px solid #00aa00;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
 <body>
     <h1>Qure Admin Dashboard</h1>
 
+    <!-- Flash Messages -->
     {% with messages = get_flashed_messages() %}
       {% if messages %}
-        <ul>
-          {% for message in messages %}
-            <li>{{ message }}</li>
-          {% endfor %}
-        </ul>
+        <div class="flash-messages">
+          <ul>
+            {% for message in messages %}
+              <li>{{ message }}</li>
+            {% endfor %}
+          </ul>
+        </div>
       {% endif %}
     {% endwith %}
 
-    <form action="{{ url_for('generate_queue') }}">
+    <!-- Generate Queue Button -->
+    <form action="{{ url_for('generate_queue') }}" method="get">
         <button type="submit">Generate New Queue</button>
     </form>
 
+    <!-- Display Active Queue Information -->
     {% if qr_path %}
+        <hr>
         <h3>Queue ID: {{ queue_id }}</h3>
         <img src="{{ url_for('static', filename='qrcodes/' + queue_id + '.png') }}" alt="Queue QR Code" width="200">
-        <br><br>
-        <a href="{{ url_for('admit_next', queue_id=queue_id) }}"><button>Admit Next User</button></a>
-        <a href="{{ url_for('close_queue', queue_id=queue_id) }}"><button>Close Queue</button></a>
+
+        <div class="btn-group" style="margin-top: 20px;">
+            <form method="get" action="{{ url_for('admit_next', queue_id=queue_id) }}" style="display:inline;">
+                <button type="submit">Admit Next User</button>
+            </form>
+            <form method="get" action="{{ url_for('close_queue', queue_id=queue_id) }}" style="display:inline;">
+                <button type="submit">Close Queue</button>
+            </form>
+        </div>
+
+        <!-- Optional: Show Queue Status -->
+        {% if queue_status %}
+            <p><strong>Status:</strong> {{ queue_status|capitalize }}</p>
+        {% endif %}
     {% endif %}
+
+    <!-- Waiting Users Table -->
+    {% if users %}
+        <h3>Users Waiting in Queue</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>Estimated Wait Time (minutes)</th>
+                    <th>Joined At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.user_email }}</td>
+                    <td>{{ (user.est_wait / 60) | round(2) }}</td>
+                    <td>{{ user.join_time.strftime('%Y-%m-%d %H:%M:%S') if user.join_time else 'N/A' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No users in queue currently.</p>
+    {% endif %}
+
 </body>
 </html>
