@@ -34,11 +34,17 @@ def send_email(to_email, subject, body):
 import os
 
 def generate_qr(queue_id):
-    url = f"https://qure-1-1.onrender.com/join/{queue_id}"  # Correct user-facing URL
+    url = f"https://qure-1-1.onrender.com/join/{queue_id}"
     img = qrcode.make(url)
-    path = f"static/qrcodes/{queue_id}.png"
+
+    # Ensure directory exists
+    qr_folder = 'static/qrcodes'
+    os.makedirs(qr_folder, exist_ok=True)
+
+    path = f"{qr_folder}/{queue_id}.png"
     img.save(path)
-    return path  # local path to be used in admin_dashboard
+
+    return path
 
 
 
