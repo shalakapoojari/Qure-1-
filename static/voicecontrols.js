@@ -19,7 +19,7 @@ function initVoiceRecognition() {
 
     recognition.onstart = () => {
         updateMicStatus("🎙️ Listening... Say 'next' to admit user.");
-        speak("Voice recognition activated. Say next to admit the next user.");
+        speak("Hello sangeeta ma'am!. Say next to admit the next user.");
     };
 
     recognition.onresult = (event) => {
