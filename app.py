@@ -74,22 +74,36 @@ def generate_queue():
 def join_queue(queue_id):
     queue = mongo.db.queues.find_one({"queue_id": queue_id})
     if not queue or queue['status'] != 'active':
-        return render_template('queue_closed.html')
+        return render_template('queue_closed.html', queue_id=queue_id)
+
     if request.method == 'POST':
-        email = request.form['email']
+        email = request.form['email'].strip().lower()
+        
         user_data = {
             "queue_id": queue_id,
             "user_email": email,
             "join_time": datetime.utcnow(),
             "status": "waiting"
         }
+
         position = mongo.db.queue_users.count_documents({"queue_id": queue_id, "status": "waiting"})
+        
         avg_time = (queue['total_service_time'] / queue['served_count']) if queue['served_count'] > 0 else 120
         est_wait_time = avg_time * position
+
         user_data['est_wait'] = est_wait_time
         mongo.db.queue_users.insert_one(user_data)
-        return render_template('user_joined.html', position=position+1, est_time=round(est_wait_time/60, 2))
+
+        return render_template(
+            'user_joined.html',
+            position=position + 1,
+            est_time=round(est_wait_time / 60, 2),
+            queue_id=queue_id,
+            email=email
+        )
+
     return render_template('join_queue.html', queue_id=queue_id)
+
 
 # Admit Next User
 @app.route('/admit_next/<queue_id>')
